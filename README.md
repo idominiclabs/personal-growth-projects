@@ -14,9 +14,11 @@ Features:
 - Search students
 - Delete students
 - Count students
+- Edit student details
 - Delete the student database
-- Case-insensitive search
+- Partial and case-insensitive search
 - Duplicate detection
+- Save to a file
 
 ## Technologies
 
@@ -27,4 +29,4 @@ Features:
 ## Author
 
 Dominic
-Founder of Velystronlabs
+Founder, Velystronlabs
