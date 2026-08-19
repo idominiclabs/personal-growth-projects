@@ -1,106 +1,213 @@
-student_database = []
+import json as js
+import random as rd
 
-def add_student():
-    student_name = input("Input student name: ").strip()
+file_path = "student_database.json"
+
+try:
+    with open(file_path, "r") as r_file:
+        file_content = js.load(r_file)
+
+except FileNotFoundError:
+    print("Student database does not exist!")
+    print("Creating student database...........")
+    with open(file_path, "w") as w_file:
+        js.dump([], w_file)
+
+    with open(file_path, "r") as r_file:
+        file_content = js.load(r_file)
+
+    print("Student database created successfully, add a student!!!")
+
+
+def add_student(first_name, last_name, department, level):
     duplicate = False
-     
-    for student in student_database:
-        if student.lower() == student_name.lower():
-           duplicate = True
-           break
-            
-             
-    if student_name == "":
-         print("Enter a valid name!!")
-        
-    elif duplicate:
-        print("Student already exist")
-        
+
+    if file_content:
+        for student in file_content:
+            if student.get("firstname") == first_name and student.get("lastname") == last_name:
+                duplicate = True
+                break
+
+    if duplicate:
+        print("Student already exists!")
+
     else:
-        print(f"{student_name} has been added successfully!!")
-        return student_name
-        
-        
+        student_id = f"FUT{rd.randint(0,9)}{rd.randint(0,9)}{rd.randint(0,9)}"
+        for student in file_content:
+            if student.get("student_id") == student_id:
+                student_id = f"FUT{rd.randint(0,9)}{rd.randint(0,9)}{rd.randint(0,9)}"
+                break
+
+        each_student = {
+            "firstname": first_name,
+            "lastname": last_name,
+            "department": department,
+            "level": level,
+            "student_id": student_id
+        }
+
+        file_content.append(each_student)
+
+        with open(file_path, "w") as w_file:
+            js.dump(file_content, w_file)
+
+        print(f"{first_name.capitalize()} {last_name.capitalize()} has been added successfully!!!")
+
+
 def view_students():
-    if student_database:
-            for number,student in enumerate(student_database, start=1):
-                print(f"{number}. {student}")
+    temp_data = []
+    if file_content:
+        for student in file_content:
+            stud = f"Firstname: {student.get("firstname").capitalize()}\nLastname: {student.get("lastname").title()}\nDepartment: {student.get("department").upper()}\nLevel: {student.get("level")}\nStudent ID: {student.get("student_id")}"
+            temp_data.append(stud)
+
+    return temp_data
+        
+
+def student_count():
+    if file_content:
+        print("Student count:", len(file_content))
+
     else:
-            print("No student in database")
+        print("Student database is empty!")
 
+
+def search(any_param):
+    temp_data = []
+    for students in file_content:
+        for items in students.values():
+            if any_param in items.lower():
+                stud = f"Firstname: {students.get("firstname").title()}\nLastname: {students.get("lastname").title()}\nDepartment: {students.get("department").upper()}\nLevel: {students.get("level")}\nStudent ID: {students.get("student_id")}"
+                if stud not in temp_data:
+                    temp_data.append(stud)
+
+    return temp_data
+
+
+def edit_student():
+    result = view_students()
+    if result:
+        print("All Students")
+        for number,items in enumerate(result, start=1):
+            print(f"{number}. {items}\n")
+
+        try:
+            serial_no = int(input("Enter student serial number to edit: ").strip())
+            if 0 <= serial_no <= len(file_content):
+                parameter = input("What do you want to edit? (Firstname/Lastname/Department/Level): ").lower().strip()
+                if parameter in ("firstname","lastname","department","level"):
+                    parameter_value = input(f"Enter new {parameter.title()}: ").strip().lower()
+                    file_content[serial_no - 1].update({parameter: parameter_value})
+
+                    with open(file_path, "w") as w_file:
+                        js.dump(file_content, w_file)
+
+                    print(f"Student's {parameter} has been editted successfully!!!")
+
+                else:
+                    print("Invalid parameter!")
+
+            else:
+                print("Enter a valid serial number!")
+
+        except ValueError:
+            print("Enter a valid number")
         
-def delete_student():
-    student = input("Input Student name: ").strip()
-    for students in student_database:
-        if student.lower() == students.lower():
-            student_database.remove(students)
+    else:
+        print("Student database is empty, add student to view!")
             
-            print(f"{student} has been removed from the student's database!!")
-            view_students()
-            return
-            
-    print("Can't delete, Student not found in student database")
-        
 
-def search(studentName):
-    matches = []
-    for student in student_database:
-        if studentName.lower() in student.lower():
-            matches.append(student)
-       
-    return matches
-        
 
-print("======= Velystronlabs Student Management Portal ========")
+def delete_student(serial):
+    if serial <= len(file_content):
+        file_content.remove(file_content[serial - 1])
+        with open(file_path, "w") as w_file:
+            js.dump(file_content, w_file)
+
+        print("Student has been deleted from students database!!!")
+
+    else:
+        print("Invalid serial number!")
+
+
+def delete_all_students(confirmation_prompt):
+    if confirmation_prompt == "yes":
+        file_content.clear()
+        with open(file_path, "w") as w_file:
+            js.dump(file_content, w_file)
+        print("All students have been deleted!!!")
+
+    else:
+        print("Operation cancelled, no student was deleted!")
+
+
+print("==========Velystronlabs Student Management Portal v1.02==========")
 
 while True:
-    request = input("\n1. Add student\n2. View students\n3. Search student\n4. Delete student\n5. Student count\n6. Delete student database\n7. Exit\n> ").replace(" ","").lower()
-    
-    if request in ("addstudent", "1"):
-        name = add_student()
-        if name is not None:
-            student_database.append(name)
-    
-    elif request in ("viewstudents", "2"):
-        view_students()
-        
-    elif request in ("searchstudent", "3"):
-        studentName = input("Input Student's name: ")
-        output = search(studentName)
-        if output:
-            for number,name in enumerate(output, start=1):
-                print(number, name)
-                
-        else:
-            print("Student not found, Student is not in the students database")
-            
-    elif request in ("deletestudent", "4"):
-        delete_student()
-        
-    elif request in ("studentcount", "5"):
-        student_count = len(student_database)
-        print(student_count)
-        
-    elif request in ("deletestudentdatabase", "6"):
-        if student_database:
-            consent = input("Are you sure you want to delete the student database? (yes/no): ").lower().strip()
-          
-            if consent == "":
-                 print("Enter a valid command")
-            elif consent == "yes":
-                 student_database.clear()
+    user_prompt = input("\nCommands\n1. Add student\n2. View all students\n3. Student count\n4. Search\n5. Edit student record\n6. Delete a student\n7. Delete all students\n8. Exit\n> ").lower().replace(" ","")
 
-                 print("Student database deleted successfully!!")
-                    
-            else:
-                 print("Database not deleted")
-                    
-        
+    if user_prompt in ("1", "addstudent"):
+        firstName = input("Enter Firstname: ").lower().strip()
+        lastName = input("Enter Lastname: ").lower().strip()
+        department = input("Enter Department (e.g MCE, CPE, TME etc): ").upper().strip()
+        level = input("Enter Level (e.g 100, 200 etc): ").strip()
+
+        if firstName and lastName and department and level:
+            add_student(firstName, lastName, department, level)
+
         else:
-            print("Can't delete, Student database is empty")
-    
-    elif request in ("exit", "7"):
+            print("Fill in all the required details!")
+
+    elif user_prompt in ("2", "viewallstudents"):
+        result = view_students()
+        if result:
+            print("All Students")
+            for number,items in enumerate(result, start=1):
+                print(f"\n{number}. {items}")
+
+        else:
+            print("Student database is empty, add student to view!")
+
+    elif user_prompt in ("3", "studentcount"):
+        student_count()
+
+    elif user_prompt in ("4", "search"):
+        search_char = input("Search: ").lower().strip()
+        if search_char:
+            matches = search(search_char)
+            if matches:
+                for number,each in enumerate(matches, start=1):
+                    print(f"\n{number}. {each}")
+
+            else:
+                print(f"Student with {search_char} not found!")
+
+        else:
+            print("Enter valid characters!")
+
+    elif user_prompt in ("5","editstudentrecord"):
+        edit_student()
+
+    elif user_prompt in ("6", "deleteastudent"):
+        view_students()
+        try:
+            serial_no = int(input("Enter Student's serial number: ").strip())
+            if serial_no >= 1 and serial_no <= len(file_content):
+                delete_student(serial_no)
+            else:
+                print("Invalid serial number")
+
+        except ValueError:
+            print("Invalid character, enter a serial number from the list!")
+
+    elif user_prompt in ("7", "deleteallstudents"):
+        approval = input("Are you sure you want to delete all students? (yes/no): ").lower().strip()
+        delete_all_students(approval)
+
+    elif user_prompt in ("8", "exit"):
+        print("Exiting.........")
+        print("Exited, see you next time :)")
         break
-        
+
     else:
-        print("Invalid Command")
+        print("Invalid command, choose from the list of commands!")
