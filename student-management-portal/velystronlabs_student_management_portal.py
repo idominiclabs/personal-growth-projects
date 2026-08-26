@@ -21,10 +21,16 @@ except FileNotFoundError:
 
 def add_student(first_name, last_name, department, level):
     duplicate = False
+    incoming_student = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "department": department,
+        "level": level
+    }
 
     if file_content:
         for student in file_content:
-            if student.get("firstname") == first_name and student.get("lastname") == last_name:
+            if student == incoming_student:
                 duplicate = True
                 break
 
