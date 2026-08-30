@@ -21,18 +21,16 @@ except FileNotFoundError:
 
 def add_student(first_name, last_name, department, level):
     duplicate = False
-    incoming_student = {
-        "first_name": first_name,
-        "last_name": last_name,
-        "department": department,
-        "level": level
-    }
 
-    if file_content:
-        for student in file_content:
-            if student == incoming_student:
-                duplicate = True
-                break
+    for student in file_content:
+        db_firstname = student.get("firstname")
+        db_lastname = student.get("lastname")
+        db_dep = student.get("department")
+        db_level = student.get("level")
+        
+        if db_firstname == first_name and db_lastname == last_name and db_dep == department and db_level == level:
+            duplicate = True
+            break
 
     if duplicate:
         print("Student already exists!")
@@ -42,7 +40,6 @@ def add_student(first_name, last_name, department, level):
         for student in file_content:
             if student.get("student_id") == student_id:
                 student_id = f"FUT{rd.randint(0,9)}{rd.randint(0,9)}{rd.randint(0,9)}"
-                break
 
         each_student = {
             "firstname": first_name,
@@ -99,7 +96,7 @@ def edit_student():
 
         try:
             serial_no = int(input("Enter student serial number to edit: ").strip())
-            if 0 <= serial_no <= len(file_content):
+            if 1 <= serial_no <= len(file_content):
                 parameter = input("What do you want to edit? (Firstname/Lastname/Department/Level): ").lower().strip()
                 if parameter in ("firstname","lastname","department","level"):
                     parameter_value = input(f"Enter new {parameter.title()}: ").strip().lower()
