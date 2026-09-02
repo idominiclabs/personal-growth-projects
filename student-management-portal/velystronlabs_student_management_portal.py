@@ -2,6 +2,10 @@ import json as js
 import random as rd
 
 file_path = "student_database.json"
+supported_params = {
+    "departments": ["mce","tme","cpe","css","cyb","zoo","eee","mme","cie","frs","phy","che","chm","geo"],
+    "levels": ["100","200","300","400","500"]
+}
 
 try:
     with open(file_path, "r") as r_file:
@@ -36,11 +40,17 @@ def add_student(first_name, last_name, department, level):
         print("Student already exists!")
 
     else:
-        student_id = f"FUT{rd.randint(0,9)}{rd.randint(0,9)}{rd.randint(0,9)}"
-        for student in file_content:
-            if student.get("student_id") == student_id:
-                student_id = f"FUT{rd.randint(0,9)}{rd.randint(0,9)}{rd.randint(0,9)}"
-
+        student_id = f"{department}{rd.randint(0,9)}{rd.randint(0,9)}{rd.randint(0,9)}"
+        boolean = False
+        while boolean:
+            if department in supported_params.get("departments") and level in supported_params.get("levels"):
+                
+                boolean = any(student_id == student.get("student_id") for student in file_content)
+                
+            else:
+                print("Department or level not supported, Enter a supported department/level.")
+                return
+        
         each_student = {
             "firstname": first_name,
             "lastname": last_name,
