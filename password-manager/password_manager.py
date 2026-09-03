@@ -22,8 +22,8 @@ def saveToDb():
 
 def logIn():
     print("LOGIN")
-    username = input("Enter username: ").lower().replace(" ","")
-    password = input("Enter password: ").lower().replace(" ","")
+    username = input("Enter username: ").replace(" ","")
+    password = input("Enter password: ").replace(" ","")
 
     for each in content:
         if username == each.get("user_name") and password == each.get("pass_word"):
@@ -35,8 +35,8 @@ def logIn():
 
 def signUp():
     print("SignUp")
-    username = input("Enter your unique username (username length should be within 4-10 characters): ").lower().replace(" ","")
-    password = input("Enter your strong password (username length should be within 6-13 characters): ").lower().replace(" ","")
+    username = input("Enter your unique username (username length should be within 4-10 characters): ").replace(" ","")
+    password = input("Enter your strong password (username length should be within 6-13 characters): ").replace(" ","")
     pin = input("Enter your pin (numbers only, length=4): ").replace(" ","")
 
     if 4<=len(username)<=10 and 6<=len(password)<=13 and len(pin) == 4:
@@ -68,8 +68,8 @@ def signUp():
 
 def addAccount(user_exists):
     service = input("Enter service: ").lower().strip()
-    name = input("Enter username or email: ").lower().strip()
-    acct_pass = input("Enter account password: ").lower().strip()
+    name = input("Enter username or email: ").strip()
+    acct_pass = input("Enter account password: ").strip()
 
     if service and name and acct_pass:
         user_account = {
@@ -103,11 +103,31 @@ def viewAccounts(user_exists):
         print("No account available, add account")
 
 
+def search(user_exists, search_prompt):
+    matches = []
+    for accounts in user_exists.get("listOfAccounts"):
+        service = accounts.get("service")
+        name = accounts.get("username/email")
+        if search_prompt.lower() in service.lower() or search_prompt.lower() in name.lower():
+            matches.append(accounts)
+        else:
+            continue
+
+    if matches:
+        print("Search results")
+        for number,items in enumerate(matches, start=1):
+            form = f"Service: {items.get("service")}\nUsername/Email: {items.get("username/email")}\nPassword: {items.get("password")}"
+            print(f"\n{number}. {form}")
+
+    else:
+        print(f"Nothing was found with '{search_prompt}'")
+
+
 def deleteAccount(user_exists):
     try:
         serial_no = int(input("Enter the serial number of the account you want to delete: ").strip())
         if user_exists.get("listOfAccounts"):
-            if serial_no <= len(user_exists.get("listOfAccounts")):
+            if 1<=serial_no <= len(user_exists.get("listOfAccounts")):
                 user_exists.get("listOfAccounts").remove(user_exists.get("listOfAccounts")[serial_no-1])
                 saveToDb()
                 print("Account has been deleted successfully!")
@@ -130,7 +150,7 @@ while True:
 
         if user_exists:
             while True:
-                user_prompts = input("\nCommands\n1. Add new account\n2. View all accounts\n3. Delete an account\n4. Delete all accounts\n5. Log Out\n> ").lower().replace(" ","")
+                user_prompts = input("\nCommands\n1. Add new account\n2. View all accounts\n3. Search\n4. Delete an account\n5. Delete all accounts\n6. Log Out\n> ").lower().replace(" ","")
 
                 if user_prompts in ("1", "addnewaccount"):
                     addAccount(user_exists)
@@ -143,20 +163,39 @@ while True:
                     else:
                         print("Incorrect pin")
 
-                elif user_prompts in ("3", "deleteanaccount"):
+                elif user_prompts in ("3","search"):
+                    if user_exists.get("listOfAccounts"):
+                        search_prompt = input("Enter what you want to search for: ").replace(" ","")
+                        if search_prompt:
+                            pin = input("Enter your pin: ").replace(" ", "")
+                            if pin == user_exists.get("pin"):
+                                search(user_exists, search_prompt)
+                            else:
+                                print("Incorrect pin!")
+                        else:
+                            print("Invalid, Enter a valid character!")
+                    else:
+                        print("Can't search, they're no accounts!")
+                        
+
+                elif user_prompts in ("4", "deleteanaccount"):
                     viewAccounts(user_exists)
                     deleteAccount(user_exists)
 
-                elif user_prompts in ("4", "deleteallaccounts"):
+                elif user_prompts in ("5", "deleteallaccounts"):
                     confirm = input("Are you sure you want to delete all accounts? (yes/no): ")
                     if confirm == "yes":
-                        user_exists.get("listOfAccounts").clear()
-                        saveToDb()
-                        print("All accounts have been deleted successfully!")
+                        pin = input("Enter your pin: ").replace(" ","")
+                        if pin == user_exists.get("pin"):
+                            user_exists.get("listOfAccounts").clear()
+                            saveToDb()
+                            print("All accounts have been deleted successfully!")
+                        else:
+                            print("Incorrect pin!")
                     else:
                         continue
 
-                elif user_prompts in ("5","logout"):
+                elif user_prompts in ("6","logout"):
                     print("Logging out........\nLogged out!")
                     break
 
