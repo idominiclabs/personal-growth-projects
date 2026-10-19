@@ -24,26 +24,31 @@ def add_task():
     due_date = input("Due date (format = yyyy/mm/dd): ").strip()
     
     if title and description and priority and due_date:
-        task = {
-            "title": title,
-            "description": description,
-            "priority": priority,
-            "due_date": due_date,
-            "status": "pending"
-        }
-        all_tasks.append(task)
-        save_file()
-        print("Task has been added successfully!")
+        priority_list = ["high","medium","low"]
+        if priority in priority_list:
+            task = {
+                "title": title,
+                "description": description,
+                "priority": priority,
+                "due_date": due_date,
+                "status": "pending"
+            }
+            all_tasks.append(task)
+            save_file()
+            print("Task has been added successfully!")
+         
+        else:
+            print("Invalid priority!")
         
     else:
         print("Incomplete fields, Enter valid characters only!")
         
         
-def view_tasks():
+def view_tasks(task_list):
     temp_base = []
-    if all_tasks:
-        for each_task in all_tasks:
-            task_str = f"Title: {each_task.get("title").capitalize()}\nDescription: {each_task.get("description").capitalize()}\nPriority: {each_task.get("priority").title()}\nStatus: {each_task.get("status")}\nDue date: {each_task.get("due_date")}\n"
+    if task_list:
+        for each_task in task_list:
+            task_str = f"Title: {each_task.get("title").capitalize()}\nDescription: {each_task.get("description").capitalize()}\nPriority: {each_task.get("priority").title()}\nStatus: {each_task.get("status").capitalize()}\nDue date: {each_task.get("due_date")}\n"
             temp_base.append(task_str)
             
         print("All tasks")
@@ -61,7 +66,7 @@ def search_task():
         if all_tasks:
             for task in all_tasks:
                 for items in task.values():
-                    if search_input in items:
+                    if search_input in str(items).lower():
                         matches = f"Title: {task.get('title').capitalize()}\nDescription: {task.get('description').capitalize()}\nPriority: {task.get('priority').upper()}\nStatus: {task.get('status').capitalize()}\nDue date: {task.get('due_date')}\n"
                         search_base.append(matches)
                         break
@@ -82,12 +87,12 @@ def search_task():
         
 def update_task():
     if all_tasks:
-        view_tasks()
+        view_tasks(all_tasks)
         
         try:
             prompt = int(input("Enter the serial number of the task you want to update: ").strip())
             if 0<prompt<=len(all_tasks):
-                prop_input = input("Which property do ypu want to update\n1. Title\n2. Description\n3. Priority\n4. Status\n5. Due date\n> ").strip()
+                prop_input = input("Which property do you want to update\n1. Title\n2. Description\n3. Priority\n4. Status\n5. Due date\n> ").strip()
                 if prop_input in ("1","title"):
                     title = input("Enter new title: ").strip().lower()
                     if title:
@@ -109,7 +114,7 @@ def update_task():
                 elif prop_input in ("3","priority"):
                     prior_list = ["high","medium","low"]
                     prior = int(input("Priority\n1. High\n2. Medium\n3. Low\nEnter priority serial number: ").strip())
-                    if 0<=prior<=len(prior_list):
+                    if 1<=prior<=len(prior_list):
                         all_tasks[int(prompt)-1]["priority"] = prior_list[prior-1]
                         save_file()
                         print("Task's priority has been updated successfully!")
@@ -118,9 +123,9 @@ def update_task():
                
                 elif prop_input in ("4","status"):
                     status_list = ["pending","in_progress","completed"]
-                    status = int(input("Status\n1. Pending\n2. In progress\n3. Completed\nEnter status serial number: ").strip().lower())
-                    if 0<=status<=len(status_list):
-                        all_tasks[int(prompt)-1]["priority"] = status_list[status-1]
+                    status = int(input("Status\n1. Pending\n2. In progress\n3. Completed\nEnter status serial number: ").strip())
+                    if 1<=status<=len(status_list):
+                        all_tasks[int(prompt)-1]["status"] = status_list[status-1]
                         save_file()
                         print("Task's status has been updated successfully!")
                     else:
@@ -136,6 +141,9 @@ def update_task():
                         
                 else:
                     print("Invalid property!")
+            
+            else:
+                print("Invalid serial number!")
                     
         except ValueError:
             print("Invalid command,Enter a number!")
@@ -150,7 +158,7 @@ def task_stats():
         
         for each_task in all_tasks:
             if each_task.get("status") not in status:
-                status[each_task.get("status")] = 0
+                status[each_task.get("status")] = 1
                 
             else:
                 status[each_task.get("status")] += 1
@@ -175,7 +183,7 @@ def delete_task():
         try:
             prompt = int(input("Enter the serial number of the task you want to delete: ").strip())
             
-            if 0<=prompt<=len(all_tasks):
+            if 1<=prompt<=len(all_tasks):
                 consent = input("Are you sure you want to delete the selected task? (yes/no):").lower().strip()
                 if consent == "yes":
                     all_tasks.pop(prompt - 1)
@@ -192,17 +200,72 @@ def delete_task():
         
     else:
          print("You cannot delete, add task to delete!")
+         
+         
+def filter_task():
+    def pending():
+        pen_list = []
+        for task in all_tasks:
+            if task.get("status") == "pending":
+                pen_list.append(task)
+        
+        if pen_list:       
+            view_tasks(pen_list)
+            
+        else:
+            print("There are no tasks with the status 'Pending'")
+        
+    
+    def in_progress():
+        prog = []
+        for task in all_tasks:
+            if task.get("status") == "in_progress":
+                prog.append(task)
+        
+        if prog:        
+            view_tasks(prog)
+            
+        else:
+            print("There are no tasks with status 'In progress'")
+            
+    
+    def completed():
+        comp_list = []
+        for task in all_tasks:
+            if task.get("status") == "completed":
+                comp_list.append(task)
+                
+        if comp_list:
+            view_tasks(comp_list)
+            
+        else:
+            print("There are no tasks with the status 'Completed'")
+        
+        
+    if all_tasks:
+        prompt = input("Filter by:\n1. Pending\n2. In progress\n3. Completed\n> ").replace(" ","").lower()
+        if prompt in ("1","pending"):
+            pending()
+            
+        elif prompt in ("2", "inprogress"):
+            in_progress()
+            
+        elif prompt in ("3", "completed"):
+            completed()
+            
+        else:
+            print("Invalid command!")
     
         
 print("===== TASK MANAGER =====")
 while True:
-    user_prompt = input("\n1. Add task\n2. View all tasks\n3. Search task\n4. Update task\n5. Task statistics\n6. Delete task\n7. Exit\n> ").replace(" ","").lower()
+    user_prompt = input("\n1. Add task\n2. View all tasks\n3. Search task\n4. Update task\n5. Task statistics\n6. Delete task\n7. Filter task\n8. Exit\n> ").replace(" ","").lower()
     
     if user_prompt in ("1","addtask"):
         add_task()
     
     elif user_prompt in ("2","viewalltasks"):
-        view_tasks()
+        view_tasks(all_tasks)
         
     elif user_prompt in ("3", "searchtask"):
         search_task()
@@ -216,7 +279,10 @@ while True:
     elif user_prompt in ("6","deletetask"):
         delete_task()
         
-    elif user_prompt in ("7","exit"):
+    elif user_prompt in ("7", "filtertask"):
+        filter_task()
+        
+    elif user_prompt in ("8","exit"):
         print("Exiting...")
         time.sleep(3)
         print("Exited!")
